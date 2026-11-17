@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Seedance 手电筒剧本创作器</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2d;--line:#263452;--text:#eef3ff;--muted:#9eacc8;--accent:#7c9cff;--accent2:#45d6b0}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0b1020,#111b32 55%,#0e172a);color:var(--text);font-family:Inter,"Microsoft YaHei",Arial,sans-serif;min-height:100vh}
+.container{max-width:1180px;margin:0 auto;padding:34px 20px 56px}.hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:24px}.eyebrow{color:var(--accent2);font-size:13px;letter-spacing:.12em;text-transform:uppercase}.hero h1{font-size:34px;margin:8px 0 8px}.hero p{margin:0;color:var(--muted);line-height:1.7}.badge{border:1px solid var(--line);padding:10px 14px;border-radius:12px;color:#cad5ee;background:#10182b;white-space:nowrap}
+.grid{display:grid;grid-template-columns:390px 1fr;gap:20px}.card{background:rgba(18,26,45,.92);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 16px 40px rgba(0,0,0,.18)}.card h2{font-size:18px;margin:0 0 18px}.field{margin-bottom:15px}.field label{display:block;font-size:13px;color:#c7d2ea;margin-bottom:7px}.field input,.field select,.field textarea{width:100%;border:1px solid #334463;border-radius:10px;background:#0d1527;color:var(--text);padding:11px 12px;font:inherit;outline:none}.field textarea{min-height:82px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,156,255,.12)}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.checks{display:grid;gap:9px;margin:3px 0 17px}.checks label{display:flex;gap:9px;align-items:center;color:#c7d2ea;font-size:13px}.checks input{accent-color:var(--accent)}button{border:0;border-radius:10px;padding:12px 15px;font:inherit;font-weight:700;cursor:pointer}.primary{width:100%;background:linear-gradient(135deg,#7998ff,#9b7cff);color:#fff}.secondary{background:#1b2945;color:#dbe5ff;border:1px solid #334463}.actions{display:flex;gap:10px;margin-top:15px}.actions button{flex:1}.output{min-height:600px}.empty{height:100%;min-height:560px;display:grid;place-items:center;text-align:center;color:var(--muted);border:1px dashed #334463;border-radius:14px;padding:30px}.empty strong{display:block;color:#dce6ff;font-size:18px;margin-bottom:8px}.result{white-space:pre-wrap;line-height:1.75;font-size:14px;color:#e7edff;background:#0c1425;border:1px solid #293957;border-radius:13px;padding:18px;max-height:690px;overflow:auto}.status{color:var(--accent2);font-size:13px;margin-top:10px;min-height:20px}@media(max-width:850px){.grid{grid-template-columns:1fr}.hero{display:block}.badge{display:inline-block;margin-top:14px}.output{min-height:0}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero"><div><div class="eyebrow">Seedance Video Workflow</div><h1>手电筒剧本创作器</h1><p>快速生成真实 UGC 风格的 TikTok 电商剧本和 Seedance 中文提示词。</p></div><div class="badge">Private project · v0.1</div></div>
+  <div class="grid">
+    <section class="card">
+      <h2>创作参数</h2>
+      <div class="row">
+        <div class="field"><label>产品款式</label><select id="product"><option value="orange">橙色金属款</option><option value="gray">深石墨灰款</option><option value="black">黑色款</option></select></div>
+        <div class="field"><label>视频时长</label><select id="duration"><option value="15">15 秒</option><option value="17" selected>17 秒</option><option value="19">19 秒</option></select></div>
+      </div>
+      <div class="field"><label>拍摄场景</label><input id="scene" value="美国郊区后院的夜间木平台" /></div>
+      <div class="field"><label>开头钩子</label><input id="hook" value="镜头突然扫到一片完全看不清的黑暗水面" /></div>
+      <div class="field"><label>剧情需求</label><textarea id="need">人物先遇到夜间看不清的问题，随后拿出手电展示泛光，再切换聚焦光斑照亮远处目标。</textarea></div>
+      <div class="field"><label>聚焦目标（建议 25–100 米）</label><input id="target" value="50 米外湖边的小船" /></div>
+      <div class="checks">
+        <label><input id="includeFlood" type="checkbox" checked /> 展示 Wide Flood 泛光</label>
+        <label><input id="includeBeam" type="checkbox" checked /> 展示 Focused Beam 聚焦光斑</label>
+        <label><input id="ugc" type="checkbox" checked /> 写实手机 UGC 质感</label>
+      </div>
+      <button class="primary" onclick="generate()">生成剧本与 Seedance 提示词</button>
+      <div class="status" id="status"></div>
+    </section>
+    <section class="card output">
+      <h2>生成结果</h2>
+      <div id="result" class="empty"><div><strong>还没有生成内容</strong>填写左侧参数，点击按钮开始创作。</div></div>
+      <div class="actions"><button class="secondary" onclick="copyResult()">复制结果</button><button class="secondary" onclick="downloadResult()">下载 TXT</button></div>
+    </section>
+  </div>
+</div>
+<script>
+const productInfo={
+ orange:{name:'橙色阳极氧化金属手电筒',detail:'短粗紧凑圆柱机身，多圈机械环、横向加工槽、纵向防滑纹和中下部斜向交叉纹理；灯头明显更粗，齿状防护边，黑色内部结构、银色反光杯、中央单颗方形黄色 LED；机身正面中央偏上实体按钮，按下后呈绿色；只有一个黑色金属夹；尾盖整体橙色，中央端面纯橙色、无任何 Logo、文字或图案，尾盖不发光。'},
+ gray:{name:'深石墨灰金属手电筒',detail:'冷调深石墨灰半哑光金属圆柱机身，真实紧凑比例和加工纹理；灯头明显更粗，齿状防护边，黑色内部结构、银色反光杯、中央单颗方形黄色 LED；正面纵向凹陷内有黑色中心、金属外圈和绿色双弧标记按钮；只有一个黑色金属夹；尾盖纯灰色端面，无任何 Logo、文字或图案，尾盖不发光。'},
+ black:{name:'黑色金属手电筒',detail:'真实黑色金属圆柱机身，明显加粗齿状灯头、黑色内部结构、银色反光杯、中央单颗方形黄色 LED；侧面黑色圆形按钮，上方四个小圆形指示点；只有一个黑色金属夹；尾盖不发光。'}
+};
+function val(id){return document.getElementById(id).value.trim()}
+function generate(){
+ const product=productInfo[document.getElementById('product').value], duration=val('duration'), scene=val('scene'), hook=val('hook'), need=val('need'), target=val('target');
+ const flood=document.getElementById('includeFlood').checked, beam=document.getElementById('includeBeam').checked, ugc=document.getElementById('ugc').checked;
+ let shots=[], t=0, step=(Number(duration)-2)/(1+(flood?1:0)+(beam?1:0));
+ shots.push(`${fmt(t)}–${fmt(t+2)}｜强钩子\n${hook}。镜头快速靠近人物视线前方的黑暗区域，真实手持手机轻微抖动，自动曝光先压低，观众一开始看不清目标。`); t+=2;
+ shots.push(`${fmt(t)}–${fmt(t+step)}｜产品自然出场\n人物从身侧拿出${product.name}，灯头朝向前方，手指真实按下正确位置的按钮。短暂特写产品外观，保持真实尺寸、方向和结构，不拿反、不悬浮、不变形。`); t+=step;
+ if(flood){shots.push(`${fmt(t)}–${fmt(t+step)}｜Wide Flood 泛光\n${product.name}灯头发出冷白至中性白的宽阔近圆形照明区域，覆盖脚下地面和周围物体。受光较均匀，边缘柔和但可分辨，保留地面纹理；没有独立中心热点，没有蓝紫色环，照明区域外仍然较暗，不能把整个场景整体提亮。人物自然露出“终于看清了”的反应。`);t+=step;}
+ if(beam){shots.push(`${fmt(t)}–${fmt(t+step)}｜Focused Beam 聚焦光斑\n人物轻微改变灯头方向并切换模式，前一模式完全消失。冷白聚焦光准确照向${target}，在真实目标表面形成近圆形、中心接近纯白的紧凑高亮热点，外围有清晰窄蓝至蓝紫色环形彩边，环外迅速变暗。允许很淡的直线空气光柱，光束不转弯，光斑严格跟随灯头方向。`);t+=step;}
+ shots.push(`${fmt(t)}–${fmt(Number(duration))}｜收尾引导\n人物看向镜头，举起手电自然说道：“Wide when I need the whole area, focused when I need the distance.\nGrab yours before your next night out.” 无字幕、无水印、无画面文字。`);
+ const prompt=`# Seedance 2.5｜${duration}秒完整中文视频提示词\n# 手电筒真实 UGC 电商短视频\n\n【视频规格】\n严格${duration}.00秒，9:16竖屏，${ugc?'真实手机 UGC 质感，轻微手持抖动、自然自动曝光和夜间噪点':'写实商业短视频质感'}。场景统一为：${scene}。无字幕、无水印、无夸张特效、无广告播音腔。\n\n【产品外观最高优先级】\n全片唯一产品为${product.name}。${product.detail}\n灯头是唯一发光端，尾部绝不发光；人物不能拿反，拇指按键必须有轻微真实机械下压动作。\n\n【剧情与分镜】\n${shots.join('\n\n')}\n\n【声音】\n保留真实环境声：脚步声、衣物摩擦声、按钮 Click 声和轻微风声。配低音量、节奏轻快的美式生活方式 BGM，不能盖住对白。\n\n【负面约束】\n禁止停电、找钥匙、宠物走失、迷宫、悬疑剧式黑暗吞噬、后院储物棚被风撞开、强水流防水演示、产品变形、增加第二个夹子、尾盖发光、灯头和尾盖互换、混合成第三种光效。`;
+ const text=`【剧本标题】${hook}\n\n【核心剧情】\n${need}\n\n【分镜】\n${shots.join('\n\n')}\n\n${prompt}`;
+ document.getElementById('result').className='result'; document.getElementById('result').textContent=text; document.getElementById('status').textContent='已生成，可复制或下载。';
+}
+function fmt(n){return Number(n).toFixed(2).padStart(5,'0')+'s'}
+function copyResult(){const text=document.getElementById('result').textContent;if(!text||text.includes('还没有生成'))return; navigator.clipboard.writeText(text).then(()=>document.getElementById('status').textContent='已复制到剪贴板。')}
+function downloadResult(){const text=document.getElementById('result').textContent;if(!text||text.includes('还没有生成'))return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));a.download='seedance-script.txt';a.click();URL.revokeObjectURL(a.href)}
+</script>
+</body></html>
