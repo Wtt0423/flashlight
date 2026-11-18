@@ -22,7 +22,7 @@ export default {
     const origin = request.headers.get('Origin');
     const path = new URL(request.url).pathname;
     if (path === '/health' && request.method === 'GET') {
-      return reply({status:'ok', model, revision:'4'}, 200, origin);
+      return reply({status:'ok', model, revision:'5'}, 200, origin);
     }
     if (path !== '/api/generate') return reply({error:'Not found'}, 404, origin);
     if (origin && !allowedOrigins.has(origin)) return reply({error:'Origin not allowed'}, 403, origin);
@@ -57,7 +57,13 @@ export default {
       const finishReason = answer?.choices?.[0]?.finish_reason;
       if (finishReason === 'length') return reply({error:'生成内容超出模型输出上限，请缩短剧情需求后重试。'}, 502, origin);
       if (!response) return reply({error:'Model returned no text'}, 502, origin);
-      return reply({response}, 200, origin);
+      const usage = answer?.usage ?? null;
+      const inputTokens = usage?.prompt_tokens ?? usage?.input_tokens;
+      const outputTokens = usage?.completion_tokens ?? usage?.output_tokens;
+      const estimatedNeurons = Number.isFinite(inputTokens) && Number.isFinite(outputTokens)
+        ? Math.round((inputTokens * 9091 + outputTokens * 27273) / 1000000 * 100) / 100
+        : null;
+      return reply({response, usage, estimated_neurons: estimatedNeurons}, 200, origin);
     } catch (e) {
       const message = String(e?.message || '');
       const quota = /quota|limit|exceed|429|3040/i.test(message);
