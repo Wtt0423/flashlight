@@ -22,7 +22,7 @@ export default {
     const origin = request.headers.get('Origin');
     const path = new URL(request.url).pathname;
     if (path === '/health' && request.method === 'GET') {
-      return reply({status:'ok', model}, 200, origin);
+      return reply({status:'ok', model, revision:'2'}, 200, origin);
     }
     if (path !== '/api/generate') return reply({error:'Not found'}, 404, origin);
     if (origin && !allowedOrigins.has(origin)) return reply({error:'Origin not allowed'}, 403, origin);
@@ -54,6 +54,8 @@ export default {
         temperature:0.7
       });
       const response = answer?.choices?.[0]?.message?.content ?? answer?.response ?? '';
+      const finishReason = answer?.choices?.[0]?.finish_reason;
+      if (finishReason === 'length') return reply({error:'生成内容超出模型输出上限，请缩短剧情需求后重试。'}, 502, origin);
       if (!response) return reply({error:'Model returned no text'}, 502, origin);
       return reply({response}, 200, origin);
     } catch (e) {
