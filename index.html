@@ -77,7 +77,7 @@ async function generateAI(){
   if(!res.ok||data.error)throw new Error(data.error||'HTTP '+res.status);
   const output=String(data.response||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();
   if(!output)throw new Error('模型返回空内容');
-  result.textContent=output;status.textContent='在线 AI 已完成。请核对产品外观、光效和时长。';
+  result.textContent=output;status.textContent='在线 AI 已完成。'+(typeof data.estimated_neurons==='number'?'本次估算消耗 '+data.estimated_neurons+' Neurons。':'')+'请核对产品外观、光效和时长。';
  }catch(err){
   result.textContent='在线 AI 暂时不可用。你仍可使用普通生成按钮。';
   status.textContent=err.name==='AbortError'?'请求超过10分钟，请稍后重试。':'在线接口连接失败：'+(err.message?' '+err.message:'');
