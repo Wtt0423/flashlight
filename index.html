@@ -31,8 +31,8 @@
         <label><input id="ugc" type="checkbox" checked /> 写实手机 UGC 质感</label>
       </div>
       <button class="primary" onclick="generate()">生成剧本与 Seedance 提示词</button>
-      <button id="aiButton" class="secondary" style="width:100%;margin-top:10px" onclick="generateAI()">本机 AI 实时创作（试用）</button>
-      <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:9px 0 0">需在这台电脑运行 Ollama 和本机代理；网站访客暂时无法使用此模式。</p>
+      <button id="aiButton" class="secondary" style="width:100%;margin-top:10px" onclick="generateAI()">在线 AI 实时创作</button>
+      <p style="color:var(--muted);font-size:12px;line-height:1.6;margin:9px 0 0">由云端 AI 创作，访客无需运行本地程序。免费额度有限，繁忙时请稍后再试。</p>
       <div class="status" id="status"></div>
     </section>
     <section class="card output">
@@ -69,19 +69,19 @@ async function generateAI(){
  if(!scene||!hook||!need){status.textContent='请填写拍摄场景、开头钩子和剧情需求。';return;}
  const mode=[flood?'Wide Flood：冷白宽广、较均匀的照亮区域，边缘柔和但可分辨，保留受光表面纹理，无独立热点、无蓝紫环。':'不展示泛光。',beam?'Focused Beam：冷白近圆聚焦热点，中心近纯白，紧贴清晰窄蓝紫色环，环外迅速变暗，光斑只落在目标表面，严格跟随灯头方向。':'不展示聚焦。'].join('\n');
  const prompt=`你是美国 TikTok 手电筒短视频编剧。请用中文原创一条严格${duration}秒、9:16竖屏的写实UGC分镜剧本，并给出可直接用于Seedance的完整中文视频提示词。不要输出思考过程或解释。\n产品：${product.name}。外观必须一致：${product.detail}\n场景：${scene.slice(0,180)}。开头视觉钩子：${hook.slice(0,180)}。剧情需求：${need.slice(0,500)}。聚焦目标：${target.slice(0,180)}。\n光效：${mode}\n${ugc?'真实手机手持拍摄，轻微抖动，自然自动曝光和夜间噪点。':'写实视频质感。'}灯头是唯一发光端，尾盖不发光，不能拿反、变形或悬浮。若两种模式都展示，切换后前一模式完全消失，不混成第三种。无字幕、画面文字、Logo、水印、夸张特效或广告播音腔。不要使用停电、找钥匙、宠物走失、迷宫、后院储物棚等旧剧情。\n请给出：标题、前3秒钩子、覆盖全${duration}秒的带时间分镜（含人物动作、镜头、自然英文台词、音效与BGM）、产品和光效约束、完整Seedance中文提示词。结尾自然引导购买。`;
- button.disabled=true;button.textContent='AI 创作中…';status.textContent='正在等待本机 DeepSeek，可能需要几分钟。';result.className='result';result.textContent='AI 正在写剧本，请稍候…';
+ button.disabled=true;button.textContent='AI 创作中…';status.textContent='正在等待云端 AI 创作，请稍候。';result.className='result';result.textContent='AI 正在写剧本，请稍候…';
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),600000);
  try{
-  const res=await fetch('http://127.0.0.1:5000/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt}),signal:controller.signal});
+  const res=await fetch('https://flashlight.wtt73049.workers.dev/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt}),signal:controller.signal});
   const data=await res.json();
   if(!res.ok||data.error)throw new Error(data.error||'HTTP '+res.status);
   const output=String(data.response||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();
   if(!output)throw new Error('模型返回空内容');
-  result.textContent=output;status.textContent='本机 AI 已完成。请核对产品外观、光效和时长。';
+  result.textContent=output;status.textContent='在线 AI 已完成。请核对产品外观、光效和时长。';
  }catch(err){
-  result.textContent='本机 AI 暂时不可用。你仍可使用左侧的普通生成按钮。';
-  status.textContent=err.name==='AbortError'?'请求超过10分钟，请检查本机模型状态。':'连接失败：请确认 Ollama 和 deepseek_proxy.py 正在这台电脑运行，并允许浏览器访问本机网络。'+(err.message?' '+err.message:'');
- }finally{clearTimeout(timer);button.disabled=false;button.textContent='本机 AI 实时创作（试用）';}
+  result.textContent='在线 AI 暂时不可用。你仍可使用普通生成按钮。';
+  status.textContent=err.name==='AbortError'?'请求超过10分钟，请稍后重试。':'在线接口连接失败：'+(err.message?' '+err.message:'');
+ }finally{clearTimeout(timer);button.disabled=false;button.textContent='在线 AI 实时创作';}
 }
 function fmt(n){return Number(n).toFixed(2).padStart(5,'0')+'s'}
 function copyResult(){const text=document.getElementById('result').textContent;if(!text||text.includes('还没有生成'))return; navigator.clipboard.writeText(text).then(()=>document.getElementById('status').textContent='已复制到剪贴板。')}
