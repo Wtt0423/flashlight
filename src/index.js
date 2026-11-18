@@ -22,7 +22,7 @@ export default {
     const origin = request.headers.get('Origin');
     const path = new URL(request.url).pathname;
     if (path === '/health' && request.method === 'GET') {
-      return reply({status:'ok', model, revision:'3'}, 200, origin);
+      return reply({status:'ok', model, revision:'4'}, 200, origin);
     }
     if (path !== '/api/generate') return reply({error:'Not found'}, 404, origin);
     if (origin && !allowedOrigins.has(origin)) return reply({error:'Origin not allowed'}, 403, origin);
@@ -47,7 +47,7 @@ export default {
     try {
       const answer = await env.AI.run(model, {
         messages: [
-          {role:'system', content:'你是美国 TikTok 手电筒短视频编剧。只输出完成的中文剧本和 Seedance 提示词。严格遵守输入中的产品外观、时长及两种独立光效，不虚构产品功能。避免悬疑、夸张捕获或无法拍摄的画面。按时间完整写到结尾，收束成完整句子，不输出表格或分析。'},
+          {role:'system', content:'你是美国 TikTok 手电筒短视频编剧。请严格输出两段：一、中文分镜剧本（每段明确起止秒数、机位、动作、光效、声音）；二、完整中文 Seedance 视频提示词（人物、场景、产品外观、两种独立光效、逐秒镜头、英文口播、BGM、负面约束）。除英文口播原句和 Wide Flood、Focused Beam、Seedance 外，全部用中文；禁止用英文写镜头或提示词，禁止 Scene、Subject、Camera、Text Overlay。无字幕、无画面文字、无水印、无棚拍灯光、无尾盖开关或尾盖发光。产品按钮位置仅按用户输入，泛光和聚焦切换时前一模式完全消失。剧情动作符合物理逻辑，不虚构功能，避免悬疑或夸张情节。务必写完整结尾，不输出表格、分析或思考过程。'},
           {role:'user', content:prompt}
         ],
         max_completion_tokens:3800,
