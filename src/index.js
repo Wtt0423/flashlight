@@ -6,7 +6,7 @@ const allowedOrigins = new Set([
   'https://wtt0423.github.io',
   'https://flashlight.wtt73049.workers.dev'
 ]);
-const model = '@cf/zai-org/glm-4.7-flash';
+const model = '@cf/google/gemma-4-26b-a4b-it';
 function reply(data, status, origin) {
   const headers = {'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'no-store'};
   if (origin && allowedOrigins.has(origin)) {
@@ -22,7 +22,7 @@ export default {
     const origin = request.headers.get('Origin');
     const path = new URL(request.url).pathname;
     if (path === '/health' && request.method === 'GET') {
-      return reply({status:'ok', model, revision:'2'}, 200, origin);
+      return reply({status:'ok', model, revision:'3'}, 200, origin);
     }
     if (path !== '/api/generate') return reply({error:'Not found'}, 404, origin);
     if (origin && !allowedOrigins.has(origin)) return reply({error:'Origin not allowed'}, 403, origin);
