@@ -47,10 +47,10 @@ export default {
     try {
       const answer = await env.AI.run(model, {
         messages: [
-          {role:'system', content:'你是美国 TikTok 手电筒短视频编剧。只输出完成的中文剧本和 Seedance 提示词，严格遵守用户提供的外观、时长及光效限制。'},
+          {role:'system', content:'你是美国 TikTok 手电筒短视频编剧。只输出完成的中文剧本和 Seedance 提示词。严格遵守输入中的产品外观、时长及两种独立光效，不虚构产品功能。避免悬疑、夸张捕获或无法拍摄的画面。按时间完整写到结尾，收束成完整句子，不输出表格或分析。'},
           {role:'user', content:prompt}
         ],
-        max_completion_tokens:1800,
+        max_completion_tokens:3800,
         temperature:0.7
       });
       const response = answer?.choices?.[0]?.message?.content ?? answer?.response ?? '';
